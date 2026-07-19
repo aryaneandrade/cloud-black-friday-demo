@@ -1,60 +1,124 @@
-# NovaStore Cloud Demo V5
+# ☁️ Cloud Black Friday Demo
 
-Versão personalizável da aplicação para minicurso de Computação em Nuvem.
+Uma demonstração interativa de Computação em Nuvem desenvolvida para fins educacionais.
 
-## Produto principal
+O projeto simula um e-commerce durante a Black Friday, permitindo demonstrar conceitos fundamentais de Cloud Computing como escalabilidade, balanceamento de carga, Auto Scaling e alta disponibilidade utilizando uma interface moderna e interativa.
 
-ASUS ROG Swift OLED PG34WCDM.
+---
 
-A V5 inclui ilustrações locais provisórias para que a aplicação funcione sem depender
-de imagens externas. Substitua os arquivos pelos materiais que você escolher.
+# 🎯 Objetivo
 
-## Personalização
+Este projeto foi criado para auxiliar estudantes de Tecnologia da Informação na compreensão dos principais conceitos de Computação em Nuvem através de uma demonstração prática.
 
-Edite:
+Durante a apresentação é possível visualizar:
+
+- Contagem regressiva para a Black Friday
+- Mudança automática do tema da loja
+- Alteração dinâmica dos preços
+- Crescimento do número de usuários simultâneos
+- Aumento da carga da aplicação
+- Simulação de escalabilidade
+- Mudança do servidor (EC2) atendendo o usuário
+- Conceitos de Load Balancer e Auto Scaling
+
+---
+
+# 🖥 Demonstração
+
+Fluxo da apresentação:
+
+1. Loja em funcionamento normal
+2. Início da Black Friday
+3. Contagem regressiva
+4. Mudança visual completa
+5. Início da carga controlada
+6. Crescimento do número de usuários
+7. Escalabilidade da infraestrutura
+8. Distribuição das requisições entre servidores
+
+---
+
+# 🚀 Tecnologias
+
+- Python
+- Flask
+- Docker
+- Docker Compose
+- Redis
+- HTML5
+- CSS3
+- JavaScript
+
+Infraestrutura prevista:
+
+- AWS EC2
+- Application Load Balancer
+- Auto Scaling Group
+- Amazon ECR
+- Terraform (em desenvolvimento)
+
+---
+
+# 📂 Estrutura
+
+```text
+cloud-black-friday-demo/
+
+├── app.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+│
+├── data/
+│   └── store.json
+│
+├── static/
+│   ├── app.js
+│   ├── styles.css
+│   └── images/
+│
+├── templates/
+│   └── index.html
+│
+└── README.md
+```
+
+---
+
+# ⚙️ Personalização
+
+Todas as informações da loja podem ser alteradas através de:
 
 ```text
 data/store.json
 ```
 
-Você pode alterar:
+É possível modificar:
 
-- nome da loja;
-- título normal;
-- título da Black Friday;
-- descrições;
-- produto principal;
-- nomes dos produtos;
-- imagens;
-- preços normais;
-- preços promocionais;
-- avaliações;
-- quantidade de avaliações;
-- selos;
-- parcelamento.
+- nome da loja
+- banner principal
+- produtos
+- imagens
+- preços
+- descontos
+- descrições
+- avaliações
+- cronômetro
+- textos da Black Friday
 
-## Imagens
+---
 
-Substitua:
+# ▶️ Executando localmente
 
-```text
-static/images/hero/asus-rog-pg34wcdm-normal.svg
-static/images/hero/asus-rog-pg34wcdm-black-friday.svg
-static/images/products/*.svg
+Clone o projeto:
+
+```bash
+git clone https://github.com/aryaneandrade/cloud-black-friday-demo.git
+
+cd cloud-black-friday-demo
 ```
 
-Você pode usar arquivos `.webp`, desde que também atualize os caminhos em
-`data/store.json`.
-
-Recomendação:
-
-- banner: 1600 × 900;
-- produtos: 800 × 800;
-- formato WebP;
-- fundo limpo;
-- imagens otimizadas.
-
-## Executar
+Inicie a aplicação:
 
 ```bash
 docker compose up --build
@@ -63,65 +127,73 @@ docker compose up --build
 Acesse:
 
 ```text
-http://localhost:8081
+http://localhost:8080
 ```
 
-## Aviso
+---
 
-Loja fictícia para fins educacionais. Produtos, preços, avaliações e promoções são
-meramente ilustrativos.
+# ☁️ Arquitetura (Roadmap)
 
-
-## Novidades da V6
-
-- visual inspirado em lojas premium;
-- banner maior e mais limpo;
-- cards de produtos mais compactos;
-- navegação por categorias;
-- notificações durante a demonstração;
-- alerta de CPU elevada;
-- aviso de novo servidor detectado;
-- rodapé de portfólio com tecnologias utilizadas.
-
-
-## V6 Final
-
-Esta versão combina:
-
-- banner visual da V4;
-- sem preço, avaliação ou parcelamento no banner;
-- imagem configurável do ASUS ROG Swift OLED PG34WCDM;
-- textos genéricos da loja;
-- cards, notificações e rodapé da V6;
-- catálogo configurável por JSON;
-- carga controlada da V4.1.
-
-### Imagem do banner
-
-Coloque a imagem escolhida em:
+A próxima etapa do projeto consiste em publicar a aplicação na AWS utilizando a arquitetura abaixo.
 
 ```text
-static/images/hero/banner-monitor.png
+GitHub
+   │
+   ▼
+Amazon ECR
+   │
+   ▼
+Application Load Balancer
+   │
+   ▼
+Auto Scaling Group
+   │
+ ┌───────────────┐
+ │               │
+EC2          EC2
+ │               │
+ └──────┬────────┘
+        │
+      Redis
 ```
 
-O mesmo arquivo é utilizado no modo normal e no modo Black Friday.
+---
 
-Caso ainda não tenha o PNG, altere temporariamente em `data/store.json`:
+# 📚 Objetivos de aprendizagem
 
-```json
-"image_normal": "/static/images/hero/banner-monitor.svg",
-"image_black_friday": "/static/images/hero/banner-monitor.svg"
-```
+Este projeto demonstra conceitos como:
 
+- Computação em Nuvem
+- Escalabilidade Horizontal
+- Balanceamento de Carga
+- Auto Scaling
+- Alta Disponibilidade
+- Containers
+- Virtualização
+- Infraestrutura como Código
 
-## Ajustes da V6 Final 1
+---
 
-- monitor maior no banner;
-- selo de estoque removido;
-- máscara visual para ocultar o selo CES incorporado ao PNG;
-- brilho vermelho ampliado no modo Black Friday;
-- marca-d’água mais visível;
-- botões maiores;
-- painel renomeado para “Painel da demonstração”;
-- contagem final 3–2–1 em tela cheia;
-- transições de aproximadamente 700 ms.
+# 📌 Status
+
+✅ Desenvolvimento local concluído
+
+🚧 Publicação na AWS em andamento
+
+🚧 Terraform em desenvolvimento
+
+---
+
+# 👩‍💻 Autora
+
+Aryane Andrade
+
+Estudante de Ciência da Computação
+
+Estagiária em Monitoramento de Infraestrutura, Sistemas e Cloud
+
+---
+
+# 📄 Licença
+
+Projeto desenvolvido exclusivamente para fins educacionais.
