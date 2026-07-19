@@ -31,8 +31,11 @@ const elements = {
 
 let blackFridayApplied = false;
 let lastInstanceId = "";
-let loadTimer = null;
 let loadRunning = false;
+let loadGeneration = 0;
+let loadControllers = [];
+let loadWorkerCount = 0;
+let knownInstanceIds = new Set();
 
 function formatBRL(value) {
   return new Intl.NumberFormat("pt-BR", {
@@ -42,8 +45,13 @@ function formatBRL(value) {
 }
 
 let virtualUserPoolSize = 0;
-let virtualUserCursor = 0;
 const MAX_BROWSER_VIRTUAL_USERS = 120;
+const INITIAL_LOAD_WORKERS = 6;
+const MAX_LOAD_WORKERS = 18;
+const LOAD_RAMP_INTERVAL_MS = 5000;
+const LOAD_WORK_MS = 900;
+
+let loadRampTimer = null;
 let warnedHighCpu = false;
 let lastInstanceCount = 1;
 let blackFridayToastShown = false;
@@ -119,11 +127,16 @@ function animateNumber(element, value) {
   requestAnimationFrame(frame);
 }
 
-function friendlyInstanceName(instanceId) {
-  if (!instanceId) return "EC2-01";
-  if (instanceId.startsWith("ip-")) return instanceId;
-  const cleaned = instanceId.replace(/[^a-zA-Z0-9]/g, "").slice(-4).toUpperCase();
-  return `EC2-${cleaned || "01"}`;
+function shortInstanceId(instanceId) {
+  if (!instanceId) {
+    return "EC2";
+  }
+
+  if (instanceId.startsWith("i-")) {
+    return instanceId;
+  }
+
+  return instanceId.slice(0, 12);
 }
 
 function renderServerBars(count) {
@@ -250,46 +263,100 @@ async function postAction(path) {
   return response.json();
 }
 
+async function runLoadWorker(workerId, generation, controller) {
+  let virtualUser = workerId;
+
+  while (
+    loadRunning &&
+    generation === loadGeneration &&
+    !controller.signal.aborted
+  ) {
+    virtualUserPoolSize = Math.min(
+      MAX_BROWSER_VIRTUAL_USERS,
+      Math.max(virtualUserPoolSize, loadWorkerCount * 6)
+    );
+
+    const virtualUserId =
+      virtualUser % Math.max(1, virtualUserPoolSize);
+
+    virtualUser += Math.max(1, loadWorkerCount);
+
+    try {
+      await fetch(
+        `/api/load?work_ms=${LOAD_WORK_MS}&n=${Date.now()}-${workerId}`,
+        {
+          cache: "no-store",
+          signal: controller.signal,
+          headers: {
+            "X-Demo-Client": `browser-vu-${virtualUserId}`,
+          },
+        }
+      );
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+    }
+  }
+}
+
+function addLoadWorkers(quantity) {
+  const generation = loadGeneration;
+
+  for (
+    let index = 0;
+    index < quantity && loadWorkerCount < MAX_LOAD_WORKERS;
+    index += 1
+  ) {
+    const workerId = loadWorkerCount;
+    const controller = new AbortController();
+
+    loadControllers.push(controller);
+    loadWorkerCount += 1;
+
+    runLoadWorker(workerId, generation, controller);
+  }
+}
+
 function startBrowserLoad() {
-  if (loadTimer) return;
+  if (loadRunning) {
+    return;
+  }
 
   loadRunning = true;
-  virtualUserPoolSize = 4;
-  virtualUserCursor = 0;
+  loadGeneration += 1;
+  loadControllers = [];
+  loadWorkerCount = 0;
+  virtualUserPoolSize = INITIAL_LOAD_WORKERS * 6;
+
   elements.toggleLoad.classList.add("active");
   elements.toggleLoad.textContent = "⏹ Parar carga controlada";
 
-  loadTimer = setInterval(() => {
-    // Aumenta gradualmente a quantidade de usuários virtuais.
-    virtualUserPoolSize = Math.min(
-      MAX_BROWSER_VIRTUAL_USERS,
-      virtualUserPoolSize + 4
-    );
+  addLoadWorkers(INITIAL_LOAD_WORKERS);
 
-    // Mantém uma carga moderada no navegador, alternando entre os usuários
-    // virtuais para que todos permaneçam ativos na janela de 30 segundos.
-    const requestsPerCycle = Math.min(16, virtualUserPoolSize);
-
-    for (let i = 0; i < requestsPerCycle; i += 1) {
-      const virtualUser = virtualUserCursor % virtualUserPoolSize;
-      virtualUserCursor += 1;
-
-      fetch(`/api/load?work_ms=180&n=${Date.now()}-${i}`, {
-        cache: "no-store",
-        headers: {
-          "X-Demo-Client": `browser-vu-${virtualUser}`,
-        },
-      }).catch(() => {});
+  loadRampTimer = setInterval(() => {
+    if (!loadRunning) {
+      return;
     }
-  }, 350);
+
+    addLoadWorkers(2);
+  }, LOAD_RAMP_INTERVAL_MS);
 }
 
 function stopBrowserLoad() {
   loadRunning = false;
+  loadGeneration += 1;
   virtualUserPoolSize = 0;
-  virtualUserCursor = 0;
-  clearInterval(loadTimer);
-  loadTimer = null;
+
+  if (loadRampTimer) {
+    clearInterval(loadRampTimer);
+    loadRampTimer = null;
+  }
+
+  loadControllers.forEach((controller) => controller.abort());
+  loadControllers = [];
+  loadWorkerCount = 0;
+
   elements.toggleLoad.classList.remove("active");
   elements.toggleLoad.textContent = "⚡ Iniciar carga controlada";
 }
@@ -321,6 +388,28 @@ function updateDemoPhase(data) {
   updateFinalCountdown(0);
 }
 
+function notifyNewInstances(instances) {
+  const currentIds = new Set(
+    instances
+      .map((instance) => instance.id)
+      .filter(Boolean)
+  );
+
+  if (knownInstanceIds.size > 0) {
+    currentIds.forEach((instanceId) => {
+      if (!knownInstanceIds.has(instanceId)) {
+        showToast(
+          "Novo servidor detectado",
+          `${instanceId} entrou em operação no balanceador.`,
+          "success"
+        );
+      }
+    });
+  }
+
+  knownInstanceIds = currentIds;
+}
+
 async function refreshStatus() {
   try {
     const started = performance.now();
@@ -331,6 +420,9 @@ async function refreshStatus() {
 
     const data = await response.json();
     const browserLatency = Math.round(performance.now() - started);
+    const instances = Array.isArray(data.instances)
+      ? data.instances
+      : [];
 
     updateDemoPhase(data);
 
@@ -353,21 +445,22 @@ async function refreshStatus() {
       warnedHighCpu = false;
     }
 
-    if (Number(data.active_instance_count || 1) > lastInstanceCount) {
-      showToast(
-        "Novo servidor detectado",
-        `${friendlyInstanceName(data.instance_id)} entrou em operação.`,
-        "success"
-      );
-    }
+    notifyNewInstances(instances);
 
-    lastInstanceCount = Number(data.active_instance_count || 1);
+    lastInstanceCount = Number(
+      data.active_instance_count || 1
+    );
 
     renderServerBars(data.active_instance_count || 1);
 
-    const friendlyName = friendlyInstanceName(data.instance_id);
-    elements.instanceName.textContent = friendlyName;
-    elements.instanceIp.textContent = `IP: ${data.instance_ip}`;
+    const instanceId = shortInstanceId(data.instance_id);
+    const instanceName =
+      data.instance_name || "cloud-black-friday-demo-app-asg";
+
+    elements.instanceName.textContent = instanceName;
+    elements.instanceName.title = instanceId;
+    elements.instanceIp.textContent =
+      `IP: ${data.instance_ip} • ID: ${instanceId}`;
     elements.responseTime.textContent = `${data.average_response_ms || browserLatency} ms`;
     elements.cloudStatus.textContent = data.status_label;
     elements.topStatus.textContent = data.status_label;
@@ -414,9 +507,17 @@ elements.startBlackFriday.addEventListener("click", async () => {
 elements.toggleLoad.addEventListener("click", async () => {
   const result = await postAction("/api/demo/toggle-load");
   if (result.load_mode) {
-    showToast("Carga controlada iniciada", "Usuários virtuais estão acessando a aplicação.", "warning");
+    showToast(
+      "Carga real iniciada",
+      "Workers do navegador estão gerando processamento real nas EC2.",
+      "warning"
+    );
   } else {
-    showToast("Carga controlada encerrada", "O tráfego começará a diminuir.", "success");
+    showToast(
+      "Carga real encerrada",
+      "A pressão sobre as instâncias foi interrompida.",
+      "success"
+    );
   }
 });
 
@@ -459,6 +560,10 @@ document.addEventListener("keydown", async (event) => {
     elements.panel.style.display = hidden ? "block" : "none";
     elements.showPanel.style.display = hidden ? "none" : "block";
   }
+});
+
+window.addEventListener("beforeunload", () => {
+  stopBrowserLoad();
 });
 
 refreshStatus();

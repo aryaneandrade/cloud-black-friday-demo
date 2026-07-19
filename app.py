@@ -1,10 +1,13 @@
-import os
+import hashlib
 import json
+import os
 import socket
 import time
 import uuid
 from collections import deque
-from threading import Lock
+from threading import Lock, Thread
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 import psutil
 from flask import Flask, jsonify, render_template, request
@@ -14,42 +17,95 @@ try:
 except ImportError:
     redis = None
 
+
 app = Flask(__name__)
 
 STORE_CONFIG_PATH = os.getenv("STORE_CONFIG_PATH", "/app/data/store.json")
+COUNTDOWN_SECONDS_DEFAULT = 10
+INSTANCE_HEARTBEAT_SECONDS = 5
+INSTANCE_STALE_SECONDS = 15
+IMDS_BASE_URL = "http://169.254.169.254/latest"
+
 
 def load_store_config():
     with open(STORE_CONFIG_PATH, "r", encoding="utf-8") as file:
         return json.load(file)
 
+
+def imds_get(path, timeout=1.0):
+    """Read EC2 metadata through IMDSv2.
+
+    Returns None outside EC2 or when metadata is unavailable.
+    """
+    try:
+        token_request = Request(
+            f"{IMDS_BASE_URL}/api/token",
+            method="PUT",
+            headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"},
+        )
+        with urlopen(token_request, timeout=timeout) as response:
+            token = response.read().decode("utf-8").strip()
+
+        metadata_request = Request(
+            f"{IMDS_BASE_URL}/meta-data/{path}",
+            headers={"X-aws-ec2-metadata-token": token},
+        )
+        with urlopen(metadata_request, timeout=timeout) as response:
+            return response.read().decode("utf-8").strip()
+    except (OSError, URLError, TimeoutError, ValueError):
+        return None
+
+
+def resolve_instance_identity():
+    """Prefer environment overrides, then EC2 metadata, then local fallbacks."""
+    instance_id = os.getenv("INSTANCE_ID") or imds_get("instance-id")
+    private_ip = os.getenv("INSTANCE_IP") or imds_get("local-ipv4")
+    instance_name = os.getenv("INSTANCE_NAME", "cloud-black-friday-demo-app-asg")
+
+    if not instance_id:
+        instance_id = socket.gethostname()
+
+    if not private_ip:
+        try:
+            private_ip = socket.gethostbyname(socket.gethostname())
+        except OSError:
+            private_ip = "indisponível"
+
+    return instance_id, private_ip, instance_name
+
+
 STORE_CONFIG = load_store_config()
 APP_NAME = os.getenv("APP_NAME", STORE_CONFIG["store"]["name"])
 REDIS_URL = os.getenv("REDIS_URL", "")
-INSTANCE_ID = os.getenv("INSTANCE_ID", socket.gethostname())
-INSTANCE_IP = os.getenv("INSTANCE_IP", "")
-COUNTDOWN_SECONDS = int(os.getenv("COUNTDOWN_SECONDS", str(STORE_CONFIG["store"].get("countdown_seconds", 10))))
-
-if not INSTANCE_IP:
-    try:
-        INSTANCE_IP = socket.gethostbyname(socket.gethostname())
-    except OSError:
-        INSTANCE_IP = "indisponível"
+COUNTDOWN_SECONDS = int(
+    os.getenv(
+        "COUNTDOWN_SECONDS",
+        str(STORE_CONFIG["store"].get("countdown_seconds", COUNTDOWN_SECONDS_DEFAULT)),
+    )
+)
+INSTANCE_ID, INSTANCE_IP, INSTANCE_NAME = resolve_instance_identity()
 
 redis_client = None
 if REDIS_URL and redis:
     try:
-        redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+        redis_client = redis.Redis.from_url(
+            REDIS_URL,
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            health_check_interval=15,
+        )
         redis_client.ping()
     except Exception:
         redis_client = None
 
 lock = Lock()
-started_at = time.time()
 local_total_requests = 0
 local_active_requests = 0
 recent_clients = {}
 recent_request_times = deque(maxlen=500)
 recent_request_events = deque(maxlen=5000)
+latest_cpu_percent = 0.0
 
 local_demo_state = {
     "phase": "normal",
@@ -60,7 +116,7 @@ local_demo_state = {
 
 
 def state_key():
-    return "demo:state:v4"
+    return "demo:state:v5"
 
 
 def get_demo_state():
@@ -69,16 +125,22 @@ def get_demo_state():
         if raw:
             return {
                 "phase": raw.get("phase", "normal"),
-                "countdown_started_at": float(raw["countdown_started_at"]) if raw.get("countdown_started_at") else None,
+                "countdown_started_at": (
+                    float(raw["countdown_started_at"])
+                    if raw.get("countdown_started_at")
+                    else None
+                ),
                 "load_mode": raw.get("load_mode", "0") == "1",
                 "updated_at": float(raw.get("updated_at", time.time())),
             }
+
     with lock:
         return dict(local_demo_state)
 
 
 def save_demo_state(state):
     state["updated_at"] = time.time()
+
     if redis_client:
         redis_client.hset(
             state_key(),
@@ -89,16 +151,19 @@ def save_demo_state(state):
                 "updated_at": state["updated_at"],
             },
         )
-    else:
-        with lock:
-            local_demo_state.update(state)
+        return
+
+    with lock:
+        local_demo_state.update(state)
 
 
 def resolve_demo_state():
     state = get_demo_state()
+
     if state["phase"] == "countdown" and state["countdown_started_at"]:
         elapsed = time.time() - state["countdown_started_at"]
         remaining = max(0, COUNTDOWN_SECONDS - int(elapsed))
+
         if elapsed >= COUNTDOWN_SECONDS:
             state["phase"] = "black_friday"
             state["countdown_started_at"] = None
@@ -106,6 +171,7 @@ def resolve_demo_state():
             remaining = 0
     else:
         remaining = COUNTDOWN_SECONDS if state["phase"] == "normal" else 0
+
     state["seconds_remaining"] = remaining
     return state
 
@@ -115,7 +181,7 @@ def cleanup_local_data():
     client_cutoff = now - 30
     request_cutoff = now - 10
 
-    for client_id in [k for k, v in recent_clients.items() if v < client_cutoff]:
+    for client_id in [key for key, seen_at in recent_clients.items() if seen_at < client_cutoff]:
         recent_clients.pop(client_id, None)
 
     while recent_request_events and recent_request_events[0] < request_cutoff:
@@ -125,42 +191,114 @@ def cleanup_local_data():
 def register_instance(cpu_percent):
     if not redis_client:
         return
+
     now = time.time()
-    redis_client.zadd("demo:instances", {INSTANCE_ID: now})
-    redis_client.hset("demo:instance_details", INSTANCE_ID, f"{INSTANCE_IP}|{cpu_percent:.1f}")
-    redis_client.expire("demo:instances", 120)
-    redis_client.expire("demo:instance_details", 120)
+    details = json.dumps(
+        {
+            "id": INSTANCE_ID,
+            "name": INSTANCE_NAME,
+            "ip": INSTANCE_IP,
+            "cpu": round(cpu_percent, 1),
+            "last_seen": now,
+        },
+        ensure_ascii=False,
+    )
+
+    pipe = redis_client.pipeline()
+    pipe.zadd("demo:instances", {INSTANCE_ID: now})
+    pipe.hset("demo:instance_details", INSTANCE_ID, details)
+    pipe.expire("demo:instances", 120)
+    pipe.expire("demo:instance_details", 120)
+    pipe.execute()
 
 
 def get_instances(cpu_percent):
     if not redis_client:
-        return [{"id": INSTANCE_ID, "ip": INSTANCE_IP, "cpu": round(cpu_percent, 1)}]
+        return [
+            {
+                "id": INSTANCE_ID,
+                "name": INSTANCE_NAME,
+                "ip": INSTANCE_IP,
+                "cpu": round(cpu_percent, 1),
+            }
+        ]
 
     now = time.time()
-    redis_client.zremrangebyscore("demo:instances", 0, now - 15)
+    stale_ids = redis_client.zrangebyscore(
+        "demo:instances",
+        0,
+        now - INSTANCE_STALE_SECONDS,
+    )
+
+    pipe = redis_client.pipeline()
+    pipe.zremrangebyscore("demo:instances", 0, now - INSTANCE_STALE_SECONDS)
+    if stale_ids:
+        pipe.hdel("demo:instance_details", *stale_ids)
+    pipe.execute()
+
     ids = redis_client.zrange("demo:instances", 0, -1)
     details = redis_client.hmget("demo:instance_details", ids) if ids else []
 
     result = []
-    for instance_id, detail in zip(ids, details):
-        ip = "indisponível"
-        cpu = 0.0
-        if detail:
-            parts = detail.split("|", 1)
-            ip = parts[0]
-            if len(parts) > 1:
-                try:
-                    cpu = float(parts[1])
-                except ValueError:
-                    cpu = 0.0
-        result.append({"id": instance_id, "ip": ip, "cpu": round(cpu, 1)})
+    for instance_id, raw_detail in zip(ids, details):
+        if not raw_detail:
+            continue
 
-    return result or [{"id": INSTANCE_ID, "ip": INSTANCE_IP, "cpu": round(cpu_percent, 1)}]
+        try:
+            detail = json.loads(raw_detail)
+        except (TypeError, json.JSONDecodeError):
+            continue
+
+        result.append(
+            {
+                "id": instance_id,
+                "name": detail.get("name", "EC2"),
+                "ip": detail.get("ip", "indisponível"),
+                "cpu": round(float(detail.get("cpu", 0.0)), 1),
+            }
+        )
+
+    if result:
+        return result
+
+    return [
+        {
+            "id": INSTANCE_ID,
+            "name": INSTANCE_NAME,
+            "ip": INSTANCE_IP,
+            "cpu": round(cpu_percent, 1),
+        }
+    ]
+
+
+def heartbeat_worker():
+    """Publish real instance identity and CPU periodically.
+
+    This keeps the instance visible even when /api/status is not being called.
+    """
+    global latest_cpu_percent
+
+    psutil.cpu_percent(interval=None)
+
+    while True:
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1.0)
+            with lock:
+                latest_cpu_percent = cpu_percent
+            register_instance(cpu_percent)
+        except Exception:
+            pass
+
+        time.sleep(max(1, INSTANCE_HEARTBEAT_SECONDS - 1))
+
+
+Thread(target=heartbeat_worker, name="instance-heartbeat", daemon=True).start()
 
 
 @app.before_request
 def before_request():
     global local_total_requests, local_active_requests
+
     request._started_at = time.perf_counter()
 
     if request.path.startswith("/static/"):
@@ -199,11 +337,16 @@ def after_request(response):
 
     if not request.path.startswith("/static/"):
         elapsed_ms = round(
-            (time.perf_counter() - getattr(request, "_started_at", time.perf_counter())) * 1000,
+            (
+                time.perf_counter()
+                - getattr(request, "_started_at", time.perf_counter())
+            )
+            * 1000,
             1,
         )
 
         response.headers["X-Demo-Instance"] = INSTANCE_ID
+        response.headers["X-Demo-Instance-Name"] = INSTANCE_NAME
         response.headers["X-Demo-Instance-IP"] = INSTANCE_IP
         response.headers["X-Response-Time-Ms"] = str(elapsed_ms)
 
@@ -222,12 +365,17 @@ def after_request(response):
             httponly=False,
             samesite="Lax",
         )
+
     return response
 
 
 @app.route("/")
 def index():
-    featured = next((p for p in STORE_CONFIG["products"] if p.get("featured")), STORE_CONFIG["products"][0])
+    featured = next(
+        (product for product in STORE_CONFIG["products"] if product.get("featured")),
+        STORE_CONFIG["products"][0],
+    )
+
     return render_template(
         "index.html",
         app_name=APP_NAME,
@@ -241,37 +389,52 @@ def index():
 @app.route("/api/status")
 def status():
     state = resolve_demo_state()
-    cpu = psutil.cpu_percent(interval=None)
-    register_instance(cpu)
 
     with lock:
+        cpu = latest_cpu_percent
         cleanup_local_data()
         local_users = len(recent_clients)
         local_total = local_total_requests
         local_active = local_active_requests
         local_rps = round(len(recent_request_events) / 10, 1)
-        avg_ms = round(sum(recent_request_times) / len(recent_request_times), 1) if recent_request_times else 0
+        average_response_ms = (
+            round(sum(recent_request_times) / len(recent_request_times), 1)
+            if recent_request_times
+            else 0
+        )
+
+    register_instance(cpu)
 
     if redis_client:
         now = time.time()
         redis_client.zremrangebyscore("demo:clients", 0, now - 30)
         redis_client.zremrangebyscore("demo:request_events", 0, now - 10)
+
         users = int(redis_client.zcard("demo:clients"))
         total = int(redis_client.get("demo:total_requests") or local_total)
-        active = max(0, int(redis_client.get("demo:active_requests") or local_active))
-        rps = round(redis_client.zcard("demo:request_events") / 10, 1)
+        active = max(
+            0,
+            int(redis_client.get("demo:active_requests") or local_active),
+        )
+        requests_per_second = round(
+            redis_client.zcard("demo:request_events") / 10,
+            1,
+        )
     else:
         users = local_users
         total = local_total
         active = local_active
-        rps = local_rps
+        requests_per_second = local_rps
 
     instances = get_instances(cpu)
-    average_cpu = round(sum(item["cpu"] for item in instances) / max(1, len(instances)), 1)
+    average_cpu = round(
+        sum(instance["cpu"] for instance in instances) / max(1, len(instances)),
+        1,
+    )
 
     if state["load_mode"] and users < 2:
-        status_label = "Carga controlada ativa"
-    elif average_cpu >= 75 or rps >= 35:
+        status_label = "Carga real ativa"
+    elif average_cpu >= 75 or requests_per_second >= 35:
         status_label = "Alto volume de acessos"
     elif state["phase"] == "black_friday":
         status_label = "Black Friday em andamento"
@@ -284,15 +447,17 @@ def status():
         seconds_remaining=state["seconds_remaining"],
         active_users=users,
         active_requests=active,
-        requests_per_second=rps,
+        requests_per_second=requests_per_second,
         total_requests=total,
         average_cpu=average_cpu,
-        average_response_ms=avg_ms,
+        average_response_ms=average_response_ms,
         instance_id=INSTANCE_ID,
+        instance_name=INSTANCE_NAME,
         instance_ip=INSTANCE_IP,
+        instances=instances,
         active_instance_count=len(instances),
         status_label=status_label,
-        metrics_mode="redis" if redis_client else "local",
+        metrics_mode="redis-real" if redis_client else "local-real",
     )
 
 
@@ -302,7 +467,12 @@ def start_black_friday():
     state["phase"] = "countdown"
     state["countdown_started_at"] = time.time()
     save_demo_state(state)
-    return jsonify(ok=True, phase="countdown", seconds=COUNTDOWN_SECONDS)
+
+    return jsonify(
+        ok=True,
+        phase="countdown",
+        seconds=COUNTDOWN_SECONDS,
+    )
 
 
 @app.post("/api/demo/toggle-load")
@@ -310,12 +480,17 @@ def toggle_load():
     state = get_demo_state()
     state["load_mode"] = not state.get("load_mode", False)
     save_demo_state(state)
-    return jsonify(ok=True, load_mode=state["load_mode"])
+
+    return jsonify(
+        ok=True,
+        load_mode=state["load_mode"],
+    )
 
 
 @app.post("/api/demo/reset")
 def reset_demo():
     global local_total_requests, local_active_requests
+
     save_demo_state(
         {
             "phase": "normal",
@@ -325,13 +500,12 @@ def reset_demo():
     )
 
     if redis_client:
-        keys = [
+        redis_client.delete(
             "demo:total_requests",
             "demo:active_requests",
             "demo:clients",
             "demo:request_events",
-        ]
-        redis_client.delete(*keys)
+        )
 
     with lock:
         local_total_requests = 0
@@ -345,25 +519,40 @@ def reset_demo():
 
 @app.route("/api/load")
 def load():
-    work_ms = min(max(int(request.args.get("work_ms", "150")), 10), 750)
+    """Perform real CPU-bound work for a bounded amount of time."""
+    try:
+        requested_work_ms = int(request.args.get("work_ms", "300"))
+    except ValueError:
+        requested_work_ms = 300
+
+    work_ms = min(max(requested_work_ms, 20), 1500)
     deadline = time.perf_counter() + (work_ms / 1000)
-    value = 0
+    digest = b"cloud-black-friday-demo"
 
     while time.perf_counter() < deadline:
-        value = (value * 33 + 17) % 1000003
+        digest = hashlib.sha256(digest).digest()
 
     return jsonify(
         ok=True,
-        checksum=value,
+        work_ms=work_ms,
+        checksum=digest.hex()[:16],
         instance_id=INSTANCE_ID,
+        instance_name=INSTANCE_NAME,
         instance_ip=INSTANCE_IP,
     )
 
 
 @app.route("/health")
 def health():
-    return jsonify(status="ok", instance_id=INSTANCE_ID), 200
+    return jsonify(
+        status="ok",
+        instance_id=INSTANCE_ID,
+        instance_ip=INSTANCE_IP,
+    ), 200
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8080")))
+    app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "8080")),
+    )
