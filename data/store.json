@@ -1,0 +1,86 @@
+{
+  "store": {
+    "name": "NovaStore",
+    "normal_title": "Performance que acompanha você.",
+    "normal_description": "Produtos selecionados, entrega rápida e uma experiência preparada para permanecer disponível.",
+    "black_friday_title": "A maior virada de preços começou.",
+    "black_friday_description": "Ofertas relâmpago, tráfego em alta e uma infraestrutura preparada para manter o site disponível.",
+    "countdown_seconds": 10,
+    "currency": "BRL"
+  },
+  "hero": {
+    "product_id": "asus-rog-swift-pg34wcdm",
+    "eyebrow_normal": "TECNOLOGIA PARA O SEU DIA",
+    "eyebrow_black_friday": "BLACK FRIDAY",
+    "badge_normal": "DESTAQUE PREMIUM",
+    "badge_black_friday": "ATÉ 24% OFF",
+    "image_normal": "/static/images/hero/banner-monitor.png",
+    "image_black_friday": "/static/images/hero/banner-monitor.png"
+  },
+  "products": [
+    {
+      "id": "asus-rog-swift-pg34wcdm",
+      "name": "ASUS ROG Swift OLED PG34WCDM",
+      "short_name": "ROG Swift OLED PG34WCDM",
+      "brand": "ASUS",
+      "category": "Monitor Gamer",
+      "description": "Monitor gamer curvo OLED de 34 polegadas, 240 Hz, 0,03 ms e curvatura 800R.",
+      "image": "/static/images/products/monitor.png",
+      "normal_price": 6999.0,
+      "black_friday_price": 5299.0,
+      "rating": 4.9,
+      "reviews": 284,
+      "badge": "Destaque Premium",
+      "featured": true,
+      "installments": "12x sem juros"
+    },
+    {
+      "id": "playstation-5-slim",
+      "name": "PlayStation 5 Slim",
+      "short_name": "PlayStation 5 Slim",
+      "brand": "Sony",
+      "category": "Console",
+      "description": "Console com SSD de 1 TB e controle DualSense.",
+      "image": "/static/images/products/ps5-slim.png",
+      "normal_price": 4299.0,
+      "black_friday_price": 3499.0,
+      "rating": 4.9,
+      "reviews": 1847,
+      "badge": "Mais desejado",
+      "featured": false,
+      "installments": "12x sem juros"
+    },
+    {
+      "id": "acer-nitro-v15",
+      "name": "Acer Nitro V 15",
+      "short_name": "Acer Nitro V 15",
+      "brand": "Acer",
+      "category": "Notebook Gamer",
+      "description": "Notebook gamer com tela de 15,6 polegadas e GPU dedicada.",
+      "image": "/static/images/products/acer-nitro-v15.png",
+      "normal_price": 7999.0,
+      "black_friday_price": 6399.0,
+      "rating": 4.8,
+      "reviews": 326,
+      "badge": "Performance",
+      "featured": false,
+      "installments": "12x sem juros"
+    },
+    {
+      "id": "macbook-air",
+      "name": "MacBook Air 13”",
+      "short_name": "MacBook Air 13”",
+      "brand": "Apple",
+      "category": "Notebook",
+      "description": "Notebook fino e leve para estudo, desenvolvimento e produtividade.",
+      "image": "/static/images/products/macbook-air-13.png",
+      "normal_price": 12999.0,
+      "black_friday_price": 10999.0,
+      "rating": 4.9,
+      "reviews": 817,
+      "badge": "Produtividade",
+      "featured": false,
+      "installments": "12x sem juros"
+    }
+  ]
+}

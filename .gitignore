@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Variáveis e segredos
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Sistema e editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*~
+
+# Credenciais e chaves
+*.pem
+*.key
+credentials
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Arquivos compactados
+*.zip
+*.tar
+*.tar.gz

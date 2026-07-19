@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Loja demonstrativa para minicurso de computação em nuvem">
+  <title>{{ app_name }} — Cloud Demo</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body
+  data-normal-title="Performance que acompanha você."
+  data-normal-description="Produtos selecionados, entrega rápida e uma experiência preparada para permanecer disponível."
+  data-bf-title="A maior virada de preços começou."
+  data-bf-description="Ofertas relâmpago, tráfego em alta e uma infraestrutura preparada para manter o site disponível."
+  data-hero-normal="{{ hero.image_normal }}"
+  data-hero-bf="{{ hero.image_black_friday }}"
+  data-badge-normal="{{ hero.badge_normal }}"
+  data-badge-bf="{{ hero.badge_black_friday }}"
+>
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <div class="countdown-overlay" id="countdown-overlay" aria-live="assertive">
+    <span>A Black Friday começa em</span>
+    <strong id="countdown-overlay-number">3</strong>
+  </div>
+
+  <aside class="instructor-panel" id="instructor-panel">
+    <div class="instructor-head">
+      <div>
+        <span class="instructor-kicker">MODO APRESENTAÇÃO</span>
+        <strong>Painel da demonstração</strong>
+      </div>
+      <button id="hide-panel" type="button" aria-label="Ocultar painel">×</button>
+    </div>
+    <div class="instructor-actions">
+      <button class="demo-button primary" id="start-black-friday" type="button">▶ Iniciar Black Friday</button>
+      <button class="demo-button" id="toggle-load" type="button">⚡ Iniciar carga controlada</button>
+      <button class="demo-button danger" id="reset-demo" type="button">↻ Reiniciar demonstração</button>
+    </div>
+    <p class="instructor-note">Edite produtos e preços em <code>data/store.json</code>.</p>
+  </aside>
+
+  <button class="show-panel-button" id="show-panel" type="button">🎓 Controles</button>
+
+  <div class="top-strip">
+    <span class="live-dot"></span>
+    <strong>DEMONSTRAÇÃO AO VIVO</strong>
+    <span id="top-status">Operação normal</span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/">
+      <span class="brand-mark">N</span>
+      <span>{{ app_name }}</span>
+    </a>
+    <nav aria-label="Navegação principal">
+      <a href="#ofertas">Produtos</a>
+      <a href="#ofertas">Monitores</a>
+      <a href="#ofertas">Notebooks</a>
+      <a href="#ofertas">Consoles</a>
+      <a href="#ofertas">Periféricos</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-button" type="button" aria-label="Pesquisar">⌕</button>
+      <button class="icon-button" type="button" aria-label="Conta">◯</button>
+      <button class="cart-button" type="button">Carrinho <span>2</span></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="event-pill hidden" id="event-pill">BLACK FRIDAY COMEÇA EM</div>
+        <div class="countdown hidden" id="countdown">00:10</div>
+
+        <p class="eyebrow" id="hero-eyebrow">TECNOLOGIA PARA O SEU DIA</p>
+        <h1 id="hero-title">Performance que acompanha você.</h1>
+        <p class="hero-description" id="hero-description">
+          Produtos selecionados, entrega rápida e uma experiência preparada para permanecer disponível.
+        </p>
+<div class="hero-actions">
+          <a class="primary-button" href="#ofertas">Ver produtos</a>
+          <a class="secondary-button" href="#cloud-panel">Acompanhar ao vivo</a>
+        </div>
+</div>
+
+      <div class="hero-visual">
+        <img class="hero-photo" id="hero-photo" src="{{ hero.image_normal }}" alt="{{ featured.name }}">
+        <div class="floating-tag discount-tag" id="discount-tag">{{ hero.badge_normal }}</div>
+      </div>
+    </section>
+
+    <section class="metrics-shell" id="cloud-panel">
+      <div class="metrics-heading">
+        <div><p class="eyebrow">CLOUD AO VIVO</p><h2>O que está acontecendo com o site?</h2></div>
+        <span class="status-badge" id="cloud-status">Operação normal</span>
+      </div>
+      <div class="simple-metrics-grid">
+        <article class="metric-card primary-metric"><span class="metric-icon">👥</span><div><span class="metric-label">Usuários online</span><strong class="metric-value" id="active-users">0</strong><span class="metric-caption">Ativos nos últimos 30 segundos</span></div></article>
+        <article class="metric-card primary-metric"><span class="metric-icon">⚡</span><div><span class="metric-label">Requisições por segundo</span><strong class="metric-value" id="requests-per-second">0</strong><span class="metric-caption">Média dos últimos 10 segundos</span></div></article>
+        <article class="metric-card cpu-card"><div class="metric-top"><span><span class="metric-icon">🔥</span><span class="metric-label">CPU média</span></span><strong id="average-cpu">0%</strong></div><div class="cpu-track"><div class="cpu-fill" id="cpu-fill"></div></div><span class="metric-caption">Carga dos servidores ativos</span></article>
+        <article class="metric-card primary-metric"><span class="metric-icon">🖥️</span><div><span class="metric-label">Servidores ativos</span><strong class="metric-value" id="active-instances">1</strong><div class="server-bars" id="server-bars"></div></div></article>
+        <article class="metric-card server-card"><span class="metric-label">Servidor que respondeu</span><strong class="instance-name" id="instance-name">EC2-01</strong><span class="instance-ip" id="instance-ip">IP: —</span></article>
+        <article class="metric-card primary-metric"><span class="metric-icon">⏱️</span><div><span class="metric-label">Tempo de resposta</span><strong class="metric-value metric-ms" id="response-time">0 ms</strong><span class="metric-caption">Média recente</span></div></article>
+      </div>
+    </section>
+
+    <section class="catalog" id="ofertas">
+      <div class="section-heading">
+        <div><p class="eyebrow">SELECIONADOS</p><h2 id="products-title">Tecnologia em destaque</h2></div>
+      </div>
+      <div class="products-grid">
+        {% for product in products %}
+        <article class="product-card"
+          data-normal-price="{{ product.normal_price }}"
+          data-bf-price="{{ product.black_friday_price }}">
+          <div class="product-photo-wrap">
+            <img class="product-photo" src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+            <span class="discount-badge">
+              -{{ ((1 - product.black_friday_price / product.normal_price) * 100) | round | int }}%
+            </span>
+          </div>
+          <span class="product-tag">{{ product.badge }}</span>
+          <h3>{{ product.name }}</h3>
+          <div class="rating">★★★★★ <span>({{ product.reviews }})</span></div>
+          <p>{{ product.description }}</p>
+          <span class="old-price">{{ "R$ {:,.2f}".format(product.normal_price).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+          <div class="price-row">
+            <strong class="current-price">{{ "R$ {:,.2f}".format(product.normal_price).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+            <button type="button">+</button>
+          </div>
+          <span class="installments">{{ product.installments }}</span>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <footer class="portfolio-footer">
+
+    <div class="footer-bottom">
+      <span>Loja fictícia para fins educacionais. Produtos e preços são ilustrativos.</span>
+      <span>© Aryane Andrade</span>
+    </div>
+  </footer>
+
+  <script>
+    window.STORE_DATA = {
+      heroEyebrowNormal: "TECNOLOGIA PARA O SEU DIA",
+      heroEyebrowBlackFriday: "BLACK FRIDAY"
+    };
+  </script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
