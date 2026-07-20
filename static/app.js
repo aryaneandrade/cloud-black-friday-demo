@@ -47,9 +47,9 @@ function formatBRL(value) {
 let virtualUserPoolSize = 0;
 const MAX_BROWSER_VIRTUAL_USERS = 120;
 const INITIAL_LOAD_WORKERS = 6;
-const MAX_LOAD_WORKERS = 18;
-const LOAD_RAMP_INTERVAL_MS = 5000;
-const LOAD_WORK_MS = 900;
+const MAX_LOAD_WORKERS = 24;
+const LOAD_RAMP_INTERVAL_MS = 10000;
+const LOAD_WORK_MS = 700;
 
 let loadRampTimer = null;
 let warnedHighCpu = false;
@@ -427,7 +427,7 @@ async function refreshStatus() {
     updateDemoPhase(data);
 
     animateNumber(elements.activeUsers, data.active_users);
-    animateNumber(elements.requestsPerSecond, Math.round(data.requests_per_second || 0));
+    animateNumber(elements.requestsPerSecond, Math.round(data.recent_requests || 0));
     animateNumber(elements.activeInstances, data.active_instance_count || 1);
 
     const cpu = Math.max(0, Math.min(100, Number(data.average_cpu || 0)));

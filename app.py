@@ -228,7 +228,7 @@ def resolve_demo_state():
 def cleanup_local_data():
     now = time.time()
     client_cutoff = now - 30
-    request_cutoff = now - 10
+    request_cutoff = now - 30
 
     for client_id in [key for key, seen_at in recent_clients.items() if seen_at < client_cutoff]:
         recent_clients.pop(client_id, None)
@@ -447,7 +447,11 @@ def status():
         local_users = len(recent_clients)
         local_total = local_total_requests
         local_active = local_active_requests
-        local_rps = round(len(recent_request_events) / 10, 1)
+        local_recent_requests = len(recent_request_events)
+        local_rps = round(
+            local_recent_requests / 30,
+            1,
+        )
         average_response_ms = (
             round(sum(recent_request_times) / len(recent_request_times), 1)
             if recent_request_times
@@ -459,7 +463,11 @@ def status():
     if redis_client:
         now = time.time()
         redis_client.zremrangebyscore("demo:clients", 0, now - 30)
-        redis_client.zremrangebyscore("demo:request_events", 0, now - 10)
+        redis_client.zremrangebyscore(
+            "demo:request_events",
+            0,
+            now - 30,
+        )
 
         users = int(redis_client.zcard("demo:clients"))
         total = int(redis_client.get("demo:total_requests") or local_total)
@@ -467,14 +475,20 @@ def status():
             0,
             int(redis_client.get("demo:active_requests") or local_active),
         )
+        recent_requests = int(
+            redis_client.zcard(
+                "demo:request_events"
+            )
+        )
         requests_per_second = round(
-            redis_client.zcard("demo:request_events") / 10,
+            recent_requests / 30,
             1,
         )
     else:
         users = local_users
         total = local_total
         active = local_active
+        recent_requests = local_recent_requests
         requests_per_second = local_rps
 
     instances = get_instances(cpu)
@@ -499,6 +513,7 @@ def status():
         active_users=users,
         active_requests=active,
         requests_per_second=requests_per_second,
+        recent_requests=recent_requests,
         total_requests=total,
         average_cpu=average_cpu,
         average_response_ms=average_response_ms,
