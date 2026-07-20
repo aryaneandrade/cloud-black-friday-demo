@@ -1,4 +1,7 @@
 import hashlib
+from datetime import datetime, timedelta, timezone
+
+import boto3
 import json
 import os
 import socket
@@ -25,6 +28,8 @@ COUNTDOWN_SECONDS_DEFAULT = 10
 INSTANCE_HEARTBEAT_SECONDS = 5
 INSTANCE_STALE_SECONDS = 15
 IMDS_BASE_URL = "http://169.254.169.254/latest"
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+CLOUDWATCH_CPU_POLL_SECONDS = 15
 
 
 def load_store_config():
@@ -85,6 +90,11 @@ COUNTDOWN_SECONDS = int(
 )
 INSTANCE_ID, INSTANCE_IP, INSTANCE_NAME = resolve_instance_identity()
 
+try:
+    cloudwatch_client = boto3.client("cloudwatch", region_name=AWS_REGION)
+except Exception:
+    cloudwatch_client = None
+
 redis_client = None
 if REDIS_URL and redis:
     try:
@@ -106,6 +116,7 @@ recent_clients = {}
 recent_request_times = deque(maxlen=500)
 recent_request_events = deque(maxlen=5000)
 latest_cpu_percent = 0.0
+last_cloudwatch_cpu_check = 0.0
 
 local_demo_state = {
     "phase": "normal",
@@ -113,6 +124,44 @@ local_demo_state = {
     "load_mode": False,
     "updated_at": time.time(),
 }
+
+
+def get_ec2_cpu():
+    """Return the EC2 CPUUtilization metric from CloudWatch.
+
+    Outside EC2, without IAM permission, or while CloudWatch has no fresh
+    datapoint, fall back to psutil so the local environment remains usable.
+    """
+    fallback_cpu = psutil.cpu_percent(interval=0.2)
+
+    if not INSTANCE_ID.startswith("i-") or cloudwatch_client is None:
+        return round(fallback_cpu, 1)
+
+    try:
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(minutes=3)
+
+        response = cloudwatch_client.get_metric_statistics(
+            Namespace="AWS/EC2",
+            MetricName="CPUUtilization",
+            Dimensions=[{"Name": "InstanceId", "Value": INSTANCE_ID}],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=60,
+            Statistics=["Average"],
+        )
+
+        datapoints = sorted(
+            response.get("Datapoints", []),
+            key=lambda item: item["Timestamp"],
+        )
+
+        if not datapoints:
+            return round(fallback_cpu, 1)
+
+        return round(float(datapoints[-1]["Average"]), 1)
+    except Exception:
+        return round(fallback_cpu, 1)
 
 
 def state_key():
@@ -272,24 +321,26 @@ def get_instances(cpu_percent):
 
 
 def heartbeat_worker():
-    """Publish real instance identity and CPU periodically.
-
-    This keeps the instance visible even when /api/status is not being called.
-    """
-    global latest_cpu_percent
-
-    psutil.cpu_percent(interval=None)
+    """Publish real EC2 identity and CPU periodically."""
+    global latest_cpu_percent, last_cloudwatch_cpu_check
 
     while True:
         try:
-            cpu_percent = psutil.cpu_percent(interval=1.0)
+            now = time.time()
+            if now - last_cloudwatch_cpu_check >= CLOUDWATCH_CPU_POLL_SECONDS:
+                cpu_percent = get_ec2_cpu()
+                with lock:
+                    latest_cpu_percent = cpu_percent
+                    last_cloudwatch_cpu_check = now
+
             with lock:
-                latest_cpu_percent = cpu_percent
-            register_instance(cpu_percent)
+                current_cpu = latest_cpu_percent
+
+            register_instance(current_cpu)
         except Exception:
             pass
 
-        time.sleep(max(1, INSTANCE_HEARTBEAT_SECONDS - 1))
+        time.sleep(INSTANCE_HEARTBEAT_SECONDS)
 
 
 Thread(target=heartbeat_worker, name="instance-heartbeat", daemon=True).start()
@@ -457,7 +508,7 @@ def status():
         instances=instances,
         active_instance_count=len(instances),
         status_label=status_label,
-        metrics_mode="redis-real" if redis_client else "local-real",
+        metrics_mode="redis-cloudwatch" if redis_client else "local-cloudwatch",
     )
 
 
