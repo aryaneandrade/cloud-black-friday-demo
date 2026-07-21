@@ -30,6 +30,9 @@ const elements = {
 };
 
 let blackFridayApplied = false;
+const serverNumberByIp = new Map();
+let nextServerNumber = 1;
+
 let lastInstanceId = "";
 let loadRunning = false;
 let loadGeneration = 0;
@@ -453,14 +456,38 @@ async function refreshStatus() {
 
     renderServerBars(data.active_instance_count || 1);
 
-    const instanceId = shortInstanceId(data.instance_id);
-    const instanceName =
-      data.instance_name || "cloud-black-friday-demo-app-asg";
+    const currentServerIp =
+      data.instance_ip || "IP indisponível";
 
-    elements.instanceName.textContent = instanceName;
-    elements.instanceName.title = instanceId;
+    if (
+      data.instance_ip &&
+      data.instance_ip !== "indisponível" &&
+      !serverNumberByIp.has(data.instance_ip)
+    ) {
+      serverNumberByIp.set(
+        data.instance_ip,
+        nextServerNumber
+      );
+
+      nextServerNumber += 1;
+    }
+
+    const currentServerNumber =
+      serverNumberByIp.get(data.instance_ip);
+
+    const friendlyServerName =
+      currentServerNumber
+        ? `Servidor Web ${currentServerNumber}`
+        : "Servidor Web";
+
+    elements.instanceName.textContent =
+      currentServerIp;
+
+    elements.instanceName.title =
+      friendlyServerName;
+
     elements.instanceIp.textContent =
-      `IP: ${data.instance_ip} • ID: ${instanceId}`;
+      friendlyServerName;
     elements.responseTime.textContent = `${data.average_response_ms || browserLatency} ms`;
     elements.cloudStatus.textContent = data.status_label;
     elements.topStatus.textContent = data.status_label;
@@ -523,6 +550,9 @@ elements.toggleLoad.addEventListener("click", async () => {
 
 elements.resetDemo.addEventListener("click", async () => {
   stopBrowserLoad();
+
+  serverNumberByIp.clear();
+  nextServerNumber = 1;
   await postAction("/api/demo/reset");
   resetVisualState();
   await refreshStatus();
