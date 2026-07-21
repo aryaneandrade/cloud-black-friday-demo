@@ -25,7 +25,7 @@ app = Flask(__name__)
 
 STORE_CONFIG_PATH = os.getenv("STORE_CONFIG_PATH", "/app/data/store.json")
 COUNTDOWN_SECONDS_DEFAULT = 10
-INSTANCE_HEARTBEAT_SECONDS = 5
+INSTANCE_HEARTBEAT_SECONDS = 2
 INSTANCE_STALE_SECONDS = 15
 IMDS_BASE_URL = "http://169.254.169.254/latest"
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
@@ -321,27 +321,36 @@ def get_instances(cpu_percent):
 
 
 def heartbeat_worker():
-    """Publish real EC2 identity and CPU periodically."""
-    global latest_cpu_percent, last_cloudwatch_cpu_check
+    """Publica no Redis a CPU atual da instância a cada dois segundos."""
+    global latest_cpu_percent
+
+    # Inicializa o cálculo do psutil para que a primeira leitura seja válida.
+    psutil.cpu_percent(interval=None)
 
     while True:
         try:
-            now = time.time()
-            if now - last_cloudwatch_cpu_check >= CLOUDWATCH_CPU_POLL_SECONDS:
-                cpu_percent = get_ec2_cpu()
-                with lock:
-                    latest_cpu_percent = cpu_percent
-                    last_cloudwatch_cpu_check = now
+            # Mede a utilização real da CPU durante uma janela de 1 segundo.
+            cpu_percent = round(
+                psutil.cpu_percent(interval=1.0),
+                1,
+            )
 
             with lock:
-                current_cpu = latest_cpu_percent
+                latest_cpu_percent = cpu_percent
 
-            register_instance(current_cpu)
+            # Cada EC2 publica sua própria CPU no Redis.
+            register_instance(cpu_percent)
+
         except Exception:
             pass
 
-        time.sleep(INSTANCE_HEARTBEAT_SECONDS)
-
+        # A medição já consome aproximadamente 1 segundo.
+        time.sleep(
+            max(
+                0,
+                INSTANCE_HEARTBEAT_SECONDS - 1,
+            )
+        )
 
 Thread(target=heartbeat_worker, name="instance-heartbeat", daemon=True).start()
 
