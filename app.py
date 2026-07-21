@@ -532,7 +532,7 @@ def status():
         instances=instances,
         active_instance_count=len(instances),
         status_label=status_label,
-        metrics_mode="redis-cloudwatch" if redis_client else "local-cloudwatch",
+        metrics_mode="redis-realtime" if redis_client else "local-realtime",
     )
 
 
