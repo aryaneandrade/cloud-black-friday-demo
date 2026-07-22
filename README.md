@@ -1,127 +1,109 @@
-# ☁️ Cloud Black Friday Demo
+# Cloud Black Friday Demo
 
-Uma demonstração interativa de Computação em Nuvem desenvolvida para fins educacionais.
+Aplicação demonstrativa desenvolvida para um minicurso de **Computação em Nuvem**, com foco em elasticidade, escalabilidade horizontal, balanceamento de carga e containers na AWS.
 
-O projeto simula um e-commerce durante a Black Friday, permitindo demonstrar conceitos fundamentais de Cloud Computing como escalabilidade, balanceamento de carga, Auto Scaling e alta disponibilidade utilizando uma interface moderna e interativa.
+A solução simula um cenário de alta demanda durante uma Black Friday. A aplicação gera carga real de CPU e permite acompanhar o Auto Scaling adicionando novas instâncias EC2, enquanto o Application Load Balancer distribui as requisições entre os servidores disponíveis.
 
----
+## Arquitetura
 
-# 🎯 Objetivo
+```text
+Usuário
+   │
+   ▼
+Application Load Balancer
+   │
+   ▼
+Target Group
+   │
+   ▼
+Auto Scaling Group
+   │
+   ├───────────────┐
+   ▼               ▼
+EC2 + Docker   EC2 + Docker
+Flask App      Flask App
+   │               │
+   └───────┬───────┘
+           ▼
+     Redis compartilhado
 
-Este projeto foi criado para auxiliar estudantes de Tecnologia da Informação na compreensão dos principais conceitos de Computação em Nuvem através de uma demonstração prática.
+CloudWatch
+   │
+   ▼
+Auto Scaling por CPU
+```
 
-Durante a apresentação é possível visualizar:
+## Tecnologias
 
-- Contagem regressiva para a Black Friday
-- Mudança automática do tema da loja
-- Alteração dinâmica dos preços
-- Crescimento do número de usuários simultâneos
-- Aumento da carga da aplicação
-- Simulação de escalabilidade
-- Mudança do servidor (EC2) atendendo o usuário
-- Conceitos de Load Balancer e Auto Scaling
-
----
-
-# 🖥 Demonstração
-
-Fluxo da apresentação:
-
-1. Loja em funcionamento normal
-2. Início da Black Friday
-3. Contagem regressiva
-4. Mudança visual completa
-5. Início da carga controlada
-6. Crescimento do número de usuários
-7. Escalabilidade da infraestrutura
-8. Distribuição das requisições entre servidores
-
----
-
-# 🚀 Tecnologias
-
-- Python
+- Python 3.12
 - Flask
+- Gunicorn
+- Redis
+- Docker e Docker Compose
+- HTML, CSS e JavaScript
+- Amazon EC2
+- EC2 Auto Scaling
+- Application Load Balancer
+- Amazon ECR
+- Amazon CloudWatch
+- AWS IAM e Systems Manager
+
+## Funcionalidades
+
+- simulação de Black Friday;
+- contagem regressiva do evento;
+- geração controlada de carga;
+- consumo real de CPU;
+- CPU dos servidores em tempo real;
+- usuários ativos;
+- requisições registradas nos últimos 30 segundos;
+- tempo médio de resposta;
+- identificação do servidor que respondeu;
+- exibição do IP privado;
+- nomes amigáveis como `Servidor Web 1` e `Servidor Web 2`;
+- estado compartilhado entre instâncias utilizando Redis;
+- scale-out e scale-in automáticos;
+- distribuição de tráfego pelo ALB.
+
+## Auto Scaling
+
+A política utiliza Target Tracking com base na média de CPU do Auto Scaling Group.
+
+| Configuração | Valor |
+|---|---:|
+| Métrica | ASGAverageCPUUtilization |
+| Target | 50% |
+| Capacidade mínima | 1 |
+| Capacidade máxima | 3 |
+| Instance warmup | 45 segundos |
+
+O scale-in é mais conservador que o scale-out para evitar a remoção prematura de capacidade.
+
+## Execução local
+
+### Pré-requisitos
+
+- Git
 - Docker
 - Docker Compose
-- Redis
-- HTML5
-- CSS3
-- JavaScript
-
-Infraestrutura prevista:
-
-- AWS EC2
-- Application Load Balancer
-- Auto Scaling Group
-- Amazon ECR
-- Terraform (em desenvolvimento)
-
----
-
-# 📂 Estrutura
-
-```text
-cloud-black-friday-demo/
-
-├── app.py
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-│
-├── data/
-│   └── store.json
-│
-├── static/
-│   ├── app.js
-│   ├── styles.css
-│   └── images/
-│
-├── templates/
-│   └── index.html
-│
-└── README.md
-```
-
----
-
-# ⚙️ Personalização
-
-Todas as informações da loja podem ser alteradas através de:
-
-```text
-data/store.json
-```
-
-É possível modificar:
-
-- nome da loja
-- banner principal
-- produtos
-- imagens
-- preços
-- descontos
-- descrições
-- avaliações
-- cronômetro
-- textos da Black Friday
-
----
-
-# ▶️ Executando localmente
 
 Clone o projeto:
 
 ```bash
 git clone https://github.com/aryaneandrade/cloud-black-friday-demo.git
-
 cd cloud-black-friday-demo
 ```
 
-Inicie a aplicação:
+Inicie os containers:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
+```
+
+Verifique os serviços:
+
+```bash
+docker compose ps
 ```
 
 Acesse:
@@ -130,70 +112,66 @@ Acesse:
 http://localhost:8080
 ```
 
----
+Teste os endpoints:
 
-# ☁️ Arquitetura (Roadmap)
-
-A próxima etapa do projeto consiste em publicar a aplicação na AWS utilizando a arquitetura abaixo.
-
-```text
-GitHub
-   │
-   ▼
-Amazon ECR
-   │
-   ▼
-Application Load Balancer
-   │
-   ▼
-Auto Scaling Group
-   │
- ┌───────────────┐
- │               │
-EC2          EC2
- │               │
- └──────┬────────┘
-        │
-      Redis
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/api/status
 ```
 
----
+Para encerrar:
 
-# 📚 Objetivos de aprendizagem
+```bash
+docker compose down
+```
 
-Este projeto demonstra conceitos como:
+## Estrutura do projeto
 
-- Computação em Nuvem
-- Escalabilidade Horizontal
-- Balanceamento de Carga
-- Auto Scaling
-- Alta Disponibilidade
-- Containers
-- Virtualização
-- Infraestrutura como Código
+```text
+cloud-black-friday-demo/
+├── app.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── data/
+│   └── store.json
+├── static/
+│   ├── app.js
+│   └── style.css
+├── templates/
+│   └── index.html
+└── README.md
+```
 
----
+## Objetivos de aprendizagem
 
-# 📌 Status
+O projeto demonstra de forma prática:
 
-✅ Desenvolvimento local concluído
+- elasticidade;
+- escalabilidade horizontal;
+- alta disponibilidade;
+- balanceamento de carga;
+- containers;
+- monitoramento;
+- Auto Scaling;
+- arquiteturas distribuídas.
 
-🚧 Publicação na AWS em andamento
+## Melhorias futuras
 
-🚧 Terraform em desenvolvimento
+- HTTPS com AWS Certificate Manager;
+- domínio com Amazon Route 53;
+- Redis gerenciado com Amazon ElastiCache;
+- infraestrutura como código;
+- pipeline de CI/CD;
+- logs centralizados;
+- testes automatizados.
 
----
+## Versão
 
-# 👩‍💻 Autora
+`v1.2.3`
 
-Aryane Andrade
+## Autora
 
-Estudante de Ciência da Computação
+**Aryane Andrade**
 
-Estagiária em Monitoramento de Infraestrutura, Sistemas e Cloud
-
----
-
-# 📄 Licença
-
-Projeto desenvolvido exclusivamente para fins educacionais.
+Projeto desenvolvido para fins acadêmicos e demonstração de conceitos de Computação em Nuvem.
