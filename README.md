@@ -1,37 +1,31 @@
-# Cloud Black Friday Demo
+# ☁️ Cloud Black Friday Demo
 
-Aplicação demonstrativa desenvolvida para um minicurso de **Computação em Nuvem**, com foco em elasticidade, escalabilidade horizontal, balanceamento de carga e containers na AWS.
+Aplicação demonstrativa desenvolvida para um minicurso de **Computação em Nuvem**, simulando um cenário de alta demanda durante uma Black Friday.
 
-A solução simula um cenário de alta demanda durante uma Black Friday. A aplicação gera carga real de CPU e permite acompanhar o Auto Scaling adicionando novas instâncias EC2, enquanto o Application Load Balancer distribui as requisições entre os servidores disponíveis.
+O projeto demonstra, na prática, conceitos de **elasticidade**, **escalabilidade horizontal**, **balanceamento de carga**, **containers** e **Infraestrutura como Código (IaC)** utilizando serviços da AWS.
+
+---
 
 ## Arquitetura
 
 ```text
-Usuário
-   │
-   ▼
-Application Load Balancer
-   │
-   ▼
-Target Group
-   │
-   ▼
-Auto Scaling Group
-   │
-   ├───────────────┐
-   ▼               ▼
-EC2 + Docker   EC2 + Docker
-Flask App      Flask App
-   │               │
-   └───────┬───────┘
-           ▼
-     Redis compartilhado
-
-CloudWatch
-   │
-   ▼
-Auto Scaling por CPU
+                     Usuário
+                        │
+                        ▼
+          Application Load Balancer (ALB)
+                        │
+                        ▼
+              Auto Scaling Group (EC2)
+                 │               │
+                 ▼               ▼
+          Docker + Flask   Docker + Flask
+                 │               │
+                 └───────┬───────┘
+                         ▼
+                 Redis Compartilhado
 ```
+
+---
 
 ## Tecnologias
 
@@ -39,47 +33,54 @@ Auto Scaling por CPU
 - Flask
 - Gunicorn
 - Redis
-- Docker e Docker Compose
-- HTML, CSS e JavaScript
+- Docker
+- Docker Compose
+- Terraform
 - Amazon EC2
 - EC2 Auto Scaling
-- Application Load Balancer
-- Amazon ECR
+- Application Load Balancer (ALB)
+- Amazon Elastic Container Registry (ECR)
 - Amazon CloudWatch
-- AWS IAM e Systems Manager
+- AWS IAM
+- AWS Systems Manager (SSM)
+
+---
 
 ## Funcionalidades
 
-- simulação de Black Friday;
-- contagem regressiva do evento;
-- geração controlada de carga;
-- consumo real de CPU;
-- CPU dos servidores em tempo real;
-- usuários ativos;
-- requisições registradas nos últimos 30 segundos;
-- tempo médio de resposta;
-- identificação do servidor que respondeu;
-- exibição do IP privado;
-- nomes amigáveis como `Servidor Web 1` e `Servidor Web 2`;
-- estado compartilhado entre instâncias utilizando Redis;
-- scale-out e scale-in automáticos;
-- distribuição de tráfego pelo ALB.
+- Simulação de Black Friday
+- Geração de carga real de CPU
+- Escalabilidade horizontal automática
+- Balanceamento de carga entre instâncias
+- Estado compartilhado utilizando Redis
+- Monitoramento em tempo real
+- Deploy automatizado com Terraform
+- Remoção completa da infraestrutura
 
-## Auto Scaling
+---
 
-A política utiliza Target Tracking com base na média de CPU do Auto Scaling Group.
+## Infraestrutura
 
-| Configuração | Valor |
-|---|---:|
-| Métrica | ASGAverageCPUUtilization |
-| Target | 50% |
-| Capacidade mínima | 1 |
-| Capacidade máxima | 3 |
-| Instance warmup | 45 segundos |
+Toda a infraestrutura é provisionada utilizando **Terraform**.
 
-O scale-in é mais conservador que o scale-out para evitar a remoção prematura de capacidade.
+Os principais recursos criados automaticamente são:
 
-## Execução local
+- Amazon ECR
+- IAM Role e Instance Profile
+- Security Groups
+- EC2 (Redis)
+- Launch Template
+- Auto Scaling Group
+- Application Load Balancer
+- Target Group
+- Listener HTTP
+- Política de Auto Scaling
+
+A VPC padrão da AWS é reutilizada.
+
+---
+
+## Execução Local
 
 ### Pré-requisitos
 
@@ -94,16 +95,10 @@ git clone https://github.com/aryaneandrade/cloud-black-friday-demo.git
 cd cloud-black-friday-demo
 ```
 
-Inicie os containers:
+Execute:
 
 ```bash
 docker compose up --build -d
-```
-
-Verifique os serviços:
-
-```bash
-docker compose ps
 ```
 
 Acesse:
@@ -112,66 +107,103 @@ Acesse:
 http://localhost:8080
 ```
 
-Teste os endpoints:
+---
+
+## Deploy na AWS
+
+Após configurar suas credenciais da AWS, execute:
 
 ```bash
-curl http://localhost:8080/health
-curl http://localhost:8080/api/status
+./deploy.sh
 ```
 
-Para encerrar:
+O script realiza automaticamente:
+
+- Criação do Amazon ECR
+- Build da imagem Docker
+- Push da imagem para o ECR
+- Provisionamento da infraestrutura com Terraform
+- Validação da aplicação
+
+---
+
+## Remover a Infraestrutura
+
+Para remover todos os recursos criados pelo projeto:
 
 ```bash
-docker compose down
+./destroy.sh
 ```
 
-## Estrutura do projeto
+Serão removidos automaticamente:
+
+- EC2
+- Auto Scaling Group
+- Load Balancer
+- Launch Template
+- Redis
+- Security Groups
+- IAM
+- Amazon ECR
+
+A VPC padrão da AWS não é removida.
+
+---
+
+## Estrutura do Projeto
 
 ```text
 cloud-black-friday-demo/
 ├── app.py
 ├── Dockerfile
 ├── docker-compose.yml
-├── requirements.txt
-├── data/
-│   └── store.json
+├── deploy.sh
+├── destroy.sh
+├── terraform/
 ├── static/
-│   ├── app.js
-│   └── style.css
 ├── templates/
-│   └── index.html
+├── data/
+├── requirements.txt
 └── README.md
 ```
 
-## Objetivos de aprendizagem
+---
 
-O projeto demonstra de forma prática:
+## Objetivos de Aprendizagem
 
-- elasticidade;
-- escalabilidade horizontal;
-- alta disponibilidade;
-- balanceamento de carga;
-- containers;
-- monitoramento;
-- Auto Scaling;
-- arquiteturas distribuídas.
+Este projeto demonstra, na prática:
 
-## Melhorias futuras
+- Containers com Docker
+- Elasticidade
+- Escalabilidade Horizontal
+- Auto Scaling
+- Load Balancer
+- Alta Disponibilidade
+- Amazon ECR
+- Terraform
+- Infraestrutura como Código (IaC)
 
-- HTTPS com AWS Certificate Manager;
-- domínio com Amazon Route 53;
-- Redis gerenciado com Amazon ElastiCache;
-- infraestrutura como código;
-- pipeline de CI/CD;
-- logs centralizados;
-- testes automatizados.
+---
+
+## Melhorias Futuras
+
+- HTTPS com AWS Certificate Manager
+- Amazon Route 53
+- Amazon ElastiCache
+- Pipeline CI/CD
+- Logs centralizados
+- Testes automatizados
+
+---
 
 ## Versão
 
-`v1.2.3`
+**v2.0.0**
+
+---
 
 ## Autora
 
 **Aryane Andrade**
 
-Projeto desenvolvido para fins acadêmicos e demonstração de conceitos de Computação em Nuvem.
+Projeto desenvolvido para fins acadêmicos e demonstração prática de Computação em Nuvem utilizando AWS, Docker e Terraform.
