@@ -1,0 +1,8 @@
+{
+    "VpcId": "vpc-06c9c96e4f5e213ec",
+    "CidrBlock": "172.31.0.0/16",
+    "IsDefault": true,
+    "State": "available",
+    "DnsSupport": null,
+    "DnsHostnames": null
+}

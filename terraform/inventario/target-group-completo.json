@@ -1,0 +1,28 @@
+{
+    "TargetGroups": [
+        {
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978",
+            "TargetGroupName": "cloud-black-friday-demo-tg",
+            "Protocol": "HTTP",
+            "Port": 8080,
+            "VpcId": "vpc-06c9c96e4f5e213ec",
+            "HealthCheckProtocol": "HTTP",
+            "HealthCheckPort": "traffic-port",
+            "HealthCheckEnabled": true,
+            "HealthCheckIntervalSeconds": 10,
+            "HealthCheckTimeoutSeconds": 5,
+            "HealthyThresholdCount": 2,
+            "UnhealthyThresholdCount": 2,
+            "HealthCheckPath": "/health",
+            "Matcher": {
+                "HttpCode": "200"
+            },
+            "LoadBalancerArns": [
+                "arn:aws:elasticloadbalancing:us-east-1:424051028739:loadbalancer/app/cloud-black-friday-demo-alb/c66be286f65f97a3"
+            ],
+            "TargetType": "instance",
+            "ProtocolVersion": "HTTP1",
+            "IpAddressType": "ipv4"
+        }
+    ]
+}

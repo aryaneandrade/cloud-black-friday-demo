@@ -1,0 +1,32 @@
+#!/bin/bash
+set -euxo pipefail
+
+exec > >(tee /var/log/cloud-bf-redis-bootstrap.log | logger -t cloud-bf-redis-user-data -s 2>/dev/console) 2>&1
+
+dnf install -y docker
+systemctl enable --now docker
+
+for attempt in $(seq 1 30); do
+  if docker info >/dev/null 2>&1; then
+    break
+  fi
+  sleep 5
+done
+
+TOKEN="$(curl -sS -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600' http://169.254.169.254/latest/api/token)"
+PRIVATE_IP="$(curl -sS -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4)"
+
+docker rm -f cloud-bf-redis 2>/dev/null || true
+docker volume create cloud-bf-redis-data
+
+docker run -d   --name cloud-bf-redis   --restart unless-stopped   -p "$${PRIVATE_IP}:${redis_port}:6379"   -v cloud-bf-redis-data:/data   redis:7-alpine   redis-server --bind 0.0.0.0 --protected-mode no --save "" --appendonly no
+
+for attempt in $(seq 1 30); do
+  if docker exec cloud-bf-redis redis-cli ping | grep -q PONG; then
+    exit 0
+  fi
+  sleep 5
+done
+
+docker logs cloud-bf-redis || true
+exit 1

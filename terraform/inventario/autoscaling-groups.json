@@ -1,0 +1,19 @@
+[
+    {
+        "Name": "cloud-black-friday-demo-asg",
+        "Min": 1,
+        "Desired": 1,
+        "Max": 3,
+        "LaunchTemplate": {
+            "LaunchTemplateId": "lt-09e7b9460e3ac858e",
+            "LaunchTemplateName": "cloud-black-friday-demo-lt",
+            "Version": "$Latest"
+        },
+        "TargetGroups": [
+            "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978"
+        ],
+        "Subnets": "subnet-0d837f4dc8070c243,subnet-0e82804de2118f70a,subnet-035b85288b2f79876",
+        "HealthCheckType": "ELB",
+        "GracePeriod": 60
+    }
+]

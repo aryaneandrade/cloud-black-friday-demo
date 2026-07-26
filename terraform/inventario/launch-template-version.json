@@ -1,0 +1,71 @@
+{
+    "IamInstanceProfile": {
+        "Arn": "arn:aws:iam::424051028739:instance-profile/cloud-black-friday-demo-ec2-role"
+    },
+    "ImageId": "ami-01edba92f9036f76e",
+    "InstanceType": "t3.micro",
+    "Monitoring": {
+        "Enabled": true
+    },
+    "UserData": "IyEvYmluL2Jhc2gKCnNldCAtZXV4byBwaXBlZmFpbAoKZXhlYyA+ID4odGVlIC92YXIvbG9nL2Nsb3VkLWJmLWJvb3RzdHJhcC5sb2cgfCBsb2dnZXIgLXQgY2xvdWQtYmYtdXNlci1kYXRhIC1zIDI+L2Rldi9jb25zb2xlKSAyPiYxCgpBV1NfUkVHSU9OPSJ1cy1lYXN0LTEiCkVDUl9SRUdJU1RSWT0iNDI0MDUxMDI4NzM5LmRrci5lY3IudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20iCkFQUF9JTUFHRT0iJHtFQ1JfUkVHSVNUUll9L2Nsb3VkLWJsYWNrLWZyaWRheS1kZW1vOnYxLjIuMyIKUkVESVNfVVJMPSJyZWRpczovLzE3Mi4zMS4yMi42OjYzNzkvMCIKCmVjaG8gIj09PSBJbmljaWFuZG8gY29uZmlndXJhw6fDo28gZGEgQ2xvdWQgQmxhY2sgRnJpZGF5IERlbW8gPT09IgoKIyBJbnN0YWxhIGUgaW5pY2lhIG8gRG9ja2VyLgpkbmYgaW5zdGFsbCAteSBkb2NrZXIKc3lzdGVtY3RsIGVuYWJsZSAtLW5vdyBkb2NrZXIKCiMgQWd1YXJkYSBvIERvY2tlciBmaWNhciBkaXNwb27DrXZlbC4KZm9yIGF0dGVtcHQgaW4gJChzZXEgMSAzMCk7IGRvCiAgICBpZiBkb2NrZXIgaW5mbyA+L2Rldi9udWxsIDI+JjE7IHRoZW4KICAgICAgICBlY2hvICJEb2NrZXIgZGlzcG9uw612ZWwuIgogICAgICAgIGJyZWFrCiAgICBmaQoKICAgIGVjaG8gIkFndWFyZGFuZG8gRG9ja2VyOiB0ZW50YXRpdmEgJHthdHRlbXB0fS8zMCIKICAgIHNsZWVwIDUKZG9uZQoKZG9ja2VyIGluZm8gPi9kZXYvbnVsbAoKIyBBdXRlbnRpY2Egbm8gQW1hem9uIEVDUiB1c2FuZG8gYSBJQU0gUm9sZSBkYSBFQzIuCmZvciBhdHRlbXB0IGluICQoc2VxIDEgMTIpOyBkbwogICAgaWYgYXdzIGVjciBnZXQtbG9naW4tcGFzc3dvcmQgLS1yZWdpb24gIiR7QVdTX1JFR0lPTn0iIFwKICAgICAgICB8IGRvY2tlciBsb2dpbiBcCiAgICAgICAgICAgIC0tdXNlcm5hbWUgQVdTIFwKICAgICAgICAgICAgLS1wYXNzd29yZC1zdGRpbiAiJHtFQ1JfUkVHSVNUUll9IjsgdGhlbgogICAgICAgIGVjaG8gIkxvZ2luIG5vIEVDUiByZWFsaXphZG8uIgogICAgICAgIGJyZWFrCiAgICBmaQoKICAgIGVjaG8gIkZhbGhhIHRlbXBvcsOhcmlhIG5vIGxvZ2luIGRvIEVDUjogdGVudGF0aXZhICR7YXR0ZW1wdH0vMTIiCiAgICBzbGVlcCAxMApkb25lCgojIEJhaXhhIGEgdmVyc8OjbyBmaXhhIGRhIGFwbGljYcOnw6NvLgpkb2NrZXIgcHVsbCAiJHtBUFBfSU1BR0V9IgoKIyBSZW1vdmUgdW1hIHZlcnPDo28gYW50aWdhLCBjYXNvIGV4aXN0YS4KZG9ja2VyIHJtIC1mIGNsb3VkLWJmLWFwcCAyPi9kZXYvbnVsbCB8fCB0cnVlCgojIEluaWNpYSBhIGFwbGljYcOnw6NvIGFwb250YW5kbyBwYXJhIG8gUmVkaXMgY29tcGFydGlsaGFkby4KZG9ja2VyIHJ1biAtZCBcCiAgICAtLW5hbWUgY2xvdWQtYmYtYXBwIFwKICAgIC0tcmVzdGFydCB1bmxlc3Mtc3RvcHBlZCBcCiAgICAtcCA4MDgwOjgwODAgXAogICAgLWUgQVBQX05BTUU9Ik5vdmFTdG9yZSIgXAogICAgLWUgQ09VTlRET1dOX1NFQ09ORFM9IjEwIiBcCiAgICAtZSBTVE9SRV9DT05GSUdfUEFUSD0iL2FwcC9kYXRhL3N0b3JlLmpzb24iIFwKICAgIC1lIFJFRElTX1VSTD0iJHtSRURJU19VUkx9IiBcCiAgICAiJHtBUFBfSU1BR0V9IgoKIyBBZ3VhcmRhIG8gZW5kcG9pbnQgZGUgc2HDumRlIHJlc3BvbmRlci4KZm9yIGF0dGVtcHQgaW4gJChzZXEgMSAzMCk7IGRvCiAgICBpZiBjdXJsIC0tZmFpbCAtLXNpbGVudCBodHRwOi8vbG9jYWxob3N0OjgwODAvaGVhbHRoID4vZGV2L251bGw7IHRoZW4KICAgICAgICBlY2hvICJBcGxpY2HDp8OjbyBzYXVkw6F2ZWwuIgogICAgICAgIGVjaG8gIj09PSBDb25maWd1cmHDp8OjbyBjb25jbHXDrWRhIGNvbSBzdWNlc3NvID09PSIKICAgICAgICBleGl0IDAKICAgIGZpCgogICAgZWNobyAiQWd1YXJkYW5kbyBhcGxpY2HDp8OjbzogdGVudGF0aXZhICR7YXR0ZW1wdH0vMzAiCiAgICBzbGVlcCA1CmRvbmUKCmVjaG8gIkVSUk86IGEgYXBsaWNhw6fDo28gbsOjbyBmaWNvdSBzYXVkw6F2ZWwgZGVudHJvIGRvIHByYXpvLiIKZG9ja2VyIGxvZ3MgY2xvdWQtYmYtYXBwIHx8IHRydWUKZXhpdCAx",
+    "TagSpecifications": [
+        {
+            "ResourceType": "instance",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "cloud-black-friday-demo-app-asg"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "cloud-black-friday-demo"
+                },
+                {
+                    "Key": "Environment",
+                    "Value": "demo"
+                },
+                {
+                    "Key": "Owner",
+                    "Value": "Aryane"
+                },
+                {
+                    "Key": "Purpose",
+                    "Value": "minicurso-cloud"
+                },
+                {
+                    "Key": "ManagedBy",
+                    "Value": "auto-scaling"
+                },
+                {
+                    "Key": "Role",
+                    "Value": "application"
+                }
+            ]
+        },
+        {
+            "ResourceType": "volume",
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "cloud-black-friday-demo"
+                },
+                {
+                    "Key": "Environment",
+                    "Value": "demo"
+                },
+                {
+                    "Key": "ManagedBy",
+                    "Value": "auto-scaling"
+                }
+            ]
+        }
+    ],
+    "SecurityGroupIds": [
+        "sg-05b85261503c7f411"
+    ],
+    "MetadataOptions": {
+        "HttpTokens": "required",
+        "HttpPutResponseHopLimit": 2,
+        "HttpEndpoint": "enabled"
+    }
+}

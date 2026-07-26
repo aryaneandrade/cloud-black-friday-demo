@@ -1,0 +1,116 @@
+{
+    "AutoScalingGroups": [
+        {
+            "AutoScalingGroupName": "cloud-black-friday-demo-asg",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:us-east-1:424051028739:autoScalingGroup:0972a2e8-fff5-48c6-bbcc-e033e3356150:autoScalingGroupName/cloud-black-friday-demo-asg",
+            "LaunchTemplate": {
+                "LaunchTemplateId": "lt-09e7b9460e3ac858e",
+                "LaunchTemplateName": "cloud-black-friday-demo-lt",
+                "Version": "$Latest"
+            },
+            "MinSize": 1,
+            "MaxSize": 3,
+            "DesiredCapacity": 1,
+            "DefaultCooldown": 300,
+            "AvailabilityZones": [
+                "us-east-1a",
+                "us-east-1b",
+                "us-east-1c"
+            ],
+            "LoadBalancerNames": [],
+            "TargetGroupARNs": [
+                "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978"
+            ],
+            "HealthCheckType": "ELB",
+            "HealthCheckGracePeriod": 60,
+            "Instances": [
+                {
+                    "InstanceId": "i-08c2e771f97eb14c8",
+                    "InstanceType": "t3.micro",
+                    "AvailabilityZone": "us-east-1a",
+                    "LifecycleState": "InService",
+                    "HealthStatus": "Healthy",
+                    "LaunchTemplate": {
+                        "LaunchTemplateId": "lt-09e7b9460e3ac858e",
+                        "LaunchTemplateName": "cloud-black-friday-demo-lt",
+                        "Version": "7"
+                    },
+                    "ProtectedFromScaleIn": false
+                }
+            ],
+            "CreatedTime": "2026-07-19T21:35:48.222000+00:00",
+            "SuspendedProcesses": [],
+            "VPCZoneIdentifier": "subnet-0d837f4dc8070c243,subnet-0e82804de2118f70a,subnet-035b85288b2f79876",
+            "EnabledMetrics": [],
+            "Tags": [
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Environment",
+                    "Value": "demo",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "ManagedBy",
+                    "Value": "auto-scaling",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Name",
+                    "Value": "cloud-black-friday-demo-app-asg",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Owner",
+                    "Value": "Aryane",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Project",
+                    "Value": "cloud-black-friday-demo",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Purpose",
+                    "Value": "minicurso-cloud",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "cloud-black-friday-demo-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Role",
+                    "Value": "application",
+                    "PropagateAtLaunch": true
+                }
+            ],
+            "TerminationPolicies": [
+                "Default"
+            ],
+            "NewInstancesProtectedFromScaleIn": false,
+            "ServiceLinkedRoleARN": "arn:aws:iam::424051028739:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+            "DefaultInstanceWarmup": 45,
+            "TrafficSources": [
+                {
+                    "Identifier": "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978",
+                    "Type": "elbv2"
+                }
+            ],
+            "AvailabilityZoneDistribution": {
+                "CapacityDistributionStrategy": "balanced-best-effort"
+            },
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "default"
+            }
+        }
+    ]
+}

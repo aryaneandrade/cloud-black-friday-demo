@@ -1,0 +1,11 @@
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                    DescribeSecurityGroups                                                                     |
++-------------------------------------------------------------------------+-----------------------+-----------------------------------+-------------------------+
+|                               Description                               |          Id           |               Name                |          VpcId          |
++-------------------------------------------------------------------------+-----------------------+-----------------------------------+-------------------------+
+|  Temporary application access for Cloud Black Friday Demo               |  sg-05b85261503c7f411 |  cloud-black-friday-demo-app-sg   |  vpc-06c9c96e4f5e213ec  |
+|  default VPC security group                                             |  sg-07ee2873c32ea0c1e |  default                          |  vpc-06c9c96e4f5e213ec  |
+|  Allows public HTTP access to the Cloud Black Friday Demo ALB           |  sg-072be4ddfa672361c |  cloud-black-friday-demo-alb-sg   |  vpc-06c9c96e4f5e213ec  |
+|  Allows Redis access only from Cloud Black Friday application instances |  sg-0b2c3390b4828e728 |  cloud-black-friday-demo-redis-sg |  vpc-06c9c96e4f5e213ec  |
+|  launch-wizard-1 created 2026-06-30T15:49:34.512Z                       |  sg-0e664f556e5eb58b3 |  SG-smart-building-lab            |  vpc-06c9c96e4f5e213ec  |
++-------------------------------------------------------------------------+-----------------------+-----------------------------------+-------------------------+

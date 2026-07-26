@@ -1,0 +1,26 @@
+[
+    {
+        "ARN": "arn:aws:elasticloadbalancing:us-east-1:424051028739:listener/app/cloud-black-friday-demo-alb/c66be286f65f97a3/a434f39861c3d95e",
+        "Protocol": "HTTP",
+        "Port": 80,
+        "DefaultActions": [
+            {
+                "Type": "forward",
+                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978",
+                "Order": 1,
+                "ForwardConfig": {
+                    "TargetGroups": [
+                        {
+                            "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:424051028739:targetgroup/cloud-black-friday-demo-tg/5b5b3f2f60d66978",
+                            "Weight": 1
+                        }
+                    ],
+                    "TargetGroupStickinessConfig": {
+                        "Enabled": false,
+                        "DurationSeconds": 3600
+                    }
+                }
+            }
+        ]
+    }
+]

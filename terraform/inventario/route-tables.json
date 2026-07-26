@@ -1,0 +1,21 @@
+[
+    {
+        "RouteTableId": "rtb-04c20019473b665fe",
+        "Main": true,
+        "Subnets": [],
+        "Routes": [
+            {
+                "DestinationCidrBlock": "172.31.0.0/16",
+                "GatewayId": "local",
+                "Origin": "CreateRouteTable",
+                "State": "active"
+            },
+            {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": "igw-0d14d7b2412858600",
+                "Origin": "CreateRoute",
+                "State": "active"
+            }
+        ]
+    }
+]

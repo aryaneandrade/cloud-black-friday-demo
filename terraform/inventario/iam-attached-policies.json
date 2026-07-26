@@ -1,0 +1,16 @@
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AmazonSSMManagedInstanceCore",
+            "PolicyArn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        },
+        {
+            "PolicyName": "CloudWatchFullAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+        },
+        {
+            "PolicyName": "AmazonEC2ContainerRegistryPullOnly",
+            "PolicyArn": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+        }
+    ]
+}

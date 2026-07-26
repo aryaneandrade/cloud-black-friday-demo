@@ -1,0 +1,41 @@
+#!/bin/bash
+set -euxo pipefail
+
+exec > >(tee /var/log/cloud-bf-bootstrap.log | logger -t cloud-bf-user-data -s 2>/dev/console) 2>&1
+
+AWS_REGION="${aws_region}"
+ECR_REGISTRY="${ecr_registry}"
+APP_IMAGE="${app_image}"
+REDIS_URL="${redis_url}"
+
+dnf install -y docker
+systemctl enable --now docker
+
+for attempt in $(seq 1 30); do
+  if docker info >/dev/null 2>&1; then
+    break
+  fi
+  sleep 5
+done
+
+for attempt in $(seq 1 12); do
+  if aws ecr get-login-password --region "$${AWS_REGION}" | docker login --username AWS --password-stdin "$${ECR_REGISTRY}"; then
+    break
+  fi
+  sleep 10
+done
+
+docker pull "$${APP_IMAGE}"
+docker rm -f cloud-bf-app 2>/dev/null || true
+
+docker run -d   --name cloud-bf-app   --restart unless-stopped   -p ${app_port}:${app_port}   -e APP_NAME="NovaStore"   -e COUNTDOWN_SECONDS="10"   -e STORE_CONFIG_PATH="/app/data/store.json"   -e REDIS_URL="$${REDIS_URL}"   "$${APP_IMAGE}"
+
+for attempt in $(seq 1 30); do
+  if curl --fail --silent http://localhost:${app_port}/health >/dev/null; then
+    exit 0
+  fi
+  sleep 5
+done
+
+docker logs cloud-bf-app || true
+exit 1

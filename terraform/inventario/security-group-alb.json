@@ -1,0 +1,40 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-072be4ddfa672361c",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-06c9c96e4f5e213ec",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:424051028739:security-group/sg-072be4ddfa672361c",
+            "OwnerId": "424051028739",
+            "GroupName": "cloud-black-friday-demo-alb-sg",
+            "Description": "Allows public HTTP access to the Cloud Black Friday Demo ALB",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

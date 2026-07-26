@@ -1,0 +1,31 @@
+{
+    "InstanceProfile": {
+        "Path": "/",
+        "InstanceProfileName": "cloud-black-friday-demo-ec2-role",
+        "InstanceProfileId": "AIPAWFO3JGMBZ4FNTLWFF",
+        "Arn": "arn:aws:iam::424051028739:instance-profile/cloud-black-friday-demo-ec2-role",
+        "CreateDate": "2026-07-19T19:22:58+00:00",
+        "Roles": [
+            {
+                "Path": "/",
+                "RoleName": "cloud-black-friday-demo-ec2-role",
+                "RoleId": "AROAWFO3JGMB22HWQLTYX",
+                "Arn": "arn:aws:iam::424051028739:role/cloud-black-friday-demo-ec2-role",
+                "CreateDate": "2026-07-19T19:22:58+00:00",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                }
+            }
+        ],
+        "Tags": []
+    }
+}

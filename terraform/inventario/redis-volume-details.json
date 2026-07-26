@@ -1,0 +1,8 @@
+{
+    "Size": 8,
+    "Type": "gp3",
+    "Iops": 3000,
+    "Throughput": 125,
+    "Encrypted": false,
+    "DeleteOnTermination": true
+}

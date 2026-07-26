@@ -1,0 +1,47 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-05b85261503c7f411",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-06c9c96e4f5e213ec",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:424051028739:security-group/sg-05b85261503c7f411",
+            "OwnerId": "424051028739",
+            "GroupName": "cloud-black-friday-demo-app-sg",
+            "Description": "Temporary application access for Cloud Black Friday Demo",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 8080,
+                    "ToPort": 8080,
+                    "UserIdGroupPairs": [
+                        {
+                            "Description": "Application traffic from ALB",
+                            "UserId": "424051028739",
+                            "GroupId": "sg-072be4ddfa672361c"
+                        }
+                    ],
+                    "IpRanges": [
+                        {
+                            "Description": "Temporary application validation",
+                            "CidrIp": "186.228.229.181/32"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

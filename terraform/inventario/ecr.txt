@@ -1,0 +1,8 @@
+--------------------------------------------------------------------------------------
+|                                DescribeRepositories                                |
++---------+--------------------------------------------------------------------------+
+|  ARN    |  arn:aws:ecr:us-east-1:424051028739:repository/cloud-black-friday-demo   |
+|  Mutable|  MUTABLE                                                                 |
+|  Name   |  cloud-black-friday-demo                                                 |
+|  URI    |  424051028739.dkr.ecr.us-east-1.amazonaws.com/cloud-black-friday-demo    |
++---------+--------------------------------------------------------------------------+

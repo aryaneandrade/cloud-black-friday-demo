@@ -1,0 +1,24 @@
+{
+    "ImageId": "ami-01edba92f9036f76e",
+    "InstanceType": "t3.micro",
+    "SubnetId": "subnet-0e82804de2118f70a",
+    "PrivateIpAddress": "172.31.22.6",
+    "AssociatePublicIpAddress": "100.27.225.172",
+    "MetadataOptions": {
+        "State": "applied",
+        "HttpTokens": "required",
+        "HttpPutResponseHopLimit": 2,
+        "HttpEndpoint": "enabled",
+        "HttpProtocolIpv6": "disabled",
+        "InstanceMetadataTags": "disabled"
+    },
+    "Monitoring": {
+        "State": "disabled"
+    },
+    "CpuOptions": {
+        "CoreCount": 1,
+        "ThreadsPerCore": 2
+    },
+    "EbsOptimized": true,
+    "SourceDestCheck": true
+}

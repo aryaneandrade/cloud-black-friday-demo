@@ -1,0 +1,68 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-0b2c3390b4828e728",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "ManagedBy",
+                    "Value": "manual"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "cloud-black-friday-demo"
+                },
+                {
+                    "Key": "Owner",
+                    "Value": "Aryane"
+                },
+                {
+                    "Key": "Environment",
+                    "Value": "demo"
+                },
+                {
+                    "Key": "Purpose",
+                    "Value": "minicurso-cloud"
+                },
+                {
+                    "Key": "Role",
+                    "Value": "redis"
+                }
+            ],
+            "VpcId": "vpc-06c9c96e4f5e213ec",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:424051028739:security-group/sg-0b2c3390b4828e728",
+            "OwnerId": "424051028739",
+            "GroupName": "cloud-black-friday-demo-redis-sg",
+            "Description": "Allows Redis access only from Cloud Black Friday application instances",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 6379,
+                    "ToPort": 6379,
+                    "UserIdGroupPairs": [
+                        {
+                            "Description": "Redis access from application instances",
+                            "UserId": "424051028739",
+                            "GroupId": "sg-05b85261503c7f411"
+                        }
+                    ],
+                    "IpRanges": [],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+[
+    {
+        "Name": "cloud-black-friday-demo-cpu-policy",
+        "Type": "TargetTrackingScaling",
+        "TargetTracking": {
+            "PredefinedMetricSpecification": {
+                "PredefinedMetricType": "ASGAverageCPUUtilization"
+            },
+            "TargetValue": 50.0,
+            "DisableScaleIn": false
+        }
+    }
+]

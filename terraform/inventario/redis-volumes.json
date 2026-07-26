@@ -1,0 +1,14 @@
+{
+    "BlockDeviceMappings": [
+        {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+                "AttachTime": "2026-07-19T19:52:26+00:00",
+                "DeleteOnTermination": true,
+                "Status": "attached",
+                "VolumeId": "vol-0a7d606cb6916bf08"
+            }
+        }
+    ],
+    "InstanceId": "i-06562c213c1876ea8"
+}
